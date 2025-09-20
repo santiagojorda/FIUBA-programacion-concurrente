@@ -1,0 +1,21 @@
+[package]
+name = "admin"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+common = { path = "../common" }
+tokio = { version = "1.0", features = ["full"] }
+tokio-stream = { version = "^0.1.14", features = ["io-util"] }
+tokio-util = "0.7"
+actix = "0.13.5"
+actix-rt = "2.0"                                               # <-- Runtime for actix
+actix_async_handler = "0.1.0"
+futures = "0.3"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+rand = "0.8.5"
+
+[features]
+election_logs = []
+trip_logs = []
