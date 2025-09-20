@@ -1,0 +1,163 @@
+# 1° Parcial 1c2024
+
+*Foreword:* Este fue mi parcial, y conseguí que me pasarn exactamente cuáles puntos estaban bien. Los que estaban mal, tengo idea de cuál respuesta era la correcta, pero hay que tomarlos con cuidado. Marqué con un ✔️ los que me consta que están bien, y con ❓ los que corregí *after the fact*.
+
+## Pregunta 1
+
+### Enunciado
+
+Revisando el diseño aplicado en algunos proyectos, se encontró el uso de las siguientes herramientas para resolver problemas de concurrencia. Para cada uno de los problemas enuncie ventajas o desventajas de utilizar la solución propuesta y mencione cual utilizaría usted.
+
+1. Renderizado de videos 3D en alta resolución, utilizando programación asincrónica.
+2. Aplicacion que arma una nube de palabras a partir de la API de Twitter, utilizando barriers y mutex.
+3. Una aplicación para realizar una votación en vivo para un concurso de televisión, optimizada con Vectorización.
+
+### Respuesta
+
+1. **Render 3D:** No se aprovechan los puntos fuertes de la programación asincrónica (que es el procesamiento de muchas tareas de cómputo liviano y alta latencia como operaciones de I/O). Es una tarea de cómputo muy pesado, por lo que prog. asincrónica no es la mejor opción. Lo común para este tipo de tareas es usar vectorización para paralelizar lo más posible el cómputo y aprovechar las capacidades del hardware moderno. (✔️)
+2. **Twitter app:** Las barriers pueden tener problemas ya que hacer requests a una API puede llevar mucho tiempo debido a la latencia de red, y tener que esperar varias respuestas antes de poder empezar el procesamiento es ineficiente. Lo mejor en este caso sería usar tareas asíncronas para hacer las requests. (✔️)
+3. **Sistema de votación:** Debido a que el proceso de votación sucede en vivo, la vectorización corre el riesgo de contar mal los datos debido a desincronizaciones de distintas partes del sistema. Lo mejor sería usar Mutex y Barriers para asegurarse de que todos los datos se contabilizan correctamente. (❓)
+
+## Pregunta 2
+
+### Enunciado
+
+Programación asincrónica. Elija verdadero o falso y explique brevemente por qué:
+
+1. El encargado de hacer poll es el thread principal del programa.
+2. El método poll es llamado únicamente cuando la función puede progresar.
+3. El modelo piñata es colaborativo.
+4. La operación asincrónica inicia cuando se llama a un método declarado con `async`.
+
+### Respuesta
+
+1. **Falso**, el encargado de llamar a poll es el executor de la librería que implementa las funciones `async` que se esté utilizando, que puede estar corriendo en otro thread. (✔️)
+2. **Falso**, el método poll es llamado periódicamente por el executor. Si bien el executor procura no realizar llamadas de más, es posible que haga poll y que la función siga bloqueada en el mismo `await` que antes. (❓)
+3. **Verdadero**, las tareas asíncronas indican cuando pueden ser desalojadas por el executor usando `await`. (❓)
+4. **Falso**, tras el primer llamado, la función devuelve inmediatamente un future, sin empezar la ejecución de la función. (✔️)
+
+## Pregunta 3
+
+### Enunciado
+
+Para cada uno de los siguientes fragmentos de código indique si es o no es un busy wait. Justifique en cada caso (Nota: `mineral` y `batteries_produced` son locks).
+
+1.
+```rust
+for _ in 0..MINERS {
+    let lithium = Arc::clone(&mineral);
+    thread::spawn(move || loop {
+        let mined = rand::thread_rng().gen();
+        let random_result: f64 = rand::thread_rng().gen();
+
+        *lithium.write().expect("failed to mine") += mined;
+        thread::sleep(Duration::from_millis((5000 as f64 * random_result) as u64));
+    })
+}
+```
+
+2.
+```rust
+for _ in 0..MINERS {
+    let lithium = Arc::clone(&mineral);
+    let batteries_produced = Arc::clone(&resources);
+    thread::spawn(move || loop {
+        let mut lithium = lithium.write().expect("failed");
+        if lithium >= 100 {
+            lithium -= 100;
+            batteries_produced.write().expect("failed to produce") += 1
+        }
+        thread::sleep(Duration::from_millis(500));
+    })
+}
+```
+
+### Respuesta
+
+1. **NO es busy wait**. La interfaz de locks permite acceder a los valores protegidos sin hacer busy wait llamando a `read` y `write`, ya que son operaciones bloqueantes. Además, cada vez que se accede al recurso se está utilizando. (✔️)
+2. **SI es busy wait**. Aún con el sleep, está preguntando constantemente por una condición que no siempre se cumple, por lo que podría consumir muchos recursos sólo en verificar si hay suficiente litio sin hacer cómputo productivo. (✔️)
+
+## Pregunta 4
+
+### Enunciado
+
+Dada la siguiente estructura, nombre si conoce una estructura de sincronización con el mismo
+comportamiento. Indique posibles errores en la implementación.
+
+```rust
+pub struct SynchronizationStruct {
+    mutex: Mutex<i32>,
+    cond_var: Condvar,
+}
+
+impl SynchronizationStruct {
+    pub fn new(size: u16) -> SynchronizationStruct {
+        SynchronizationStruct {
+            mutex: Mutex::new(size),
+            cond_var: Condvar::new(),
+        }
+    }
+
+    pub fn function_1(&self) {
+        let mut amount = self.mutex.lock().unwrap();
+        if *amount <= 0 {
+            amount = self.cond_var.wait(amount).unwrap();
+        }
+        *amount -= 1;
+    }
+
+    pub fn function_2(&self) {
+        let mut amount = self.mutex.lock().unwrap();
+        *amount += 1;
+        self.cond_var.notify_all();
+    }
+}
+```
+
+### Respuesta
+
+La estructura implementada es un **semáforo**. Con `function_1` se accede a uno de los recursos protegidos por el semáforo, y con `function_2` se libera un recurso para que pueda ser accedido por otros threads. El único problema mayor de la implementación es que en `function_1` no se contempla la posibilidad de un *spurious awake* (i.e. que se deje de esperar por la `cond_var` aunque se siga sin cumplir la condición), lo que podría causar acceso a los recursos de forma insegura. Para arreglarlo, habría que encerrar el `wait` en un bucle `while` que verifique la condición, o bien utilizar el método `wait_until()` de la `Condvar` que tiene el mismo efecto, para verificar que el contador efectivamente no sea 0 antes de permitir el acceso a un recurso. (❓, aunque de esta estoy 99% seguro de que está todo bien y me bajaron nota sólo porque en vez de poner semáforo puse monitor)
+
+## Pregunta 5
+
+### Enunciado
+
+Dados la siguiente red de Petri y fragmento de código, indique el nombre del problema que modelan. Indique si la implementación es correcta o describa cómo mejorarla.
+
+![Red de Petri](img_2024_1c_1.png)
+
+```rust
+fn main() {
+    let sem = Arc::new(Semaphore::new(0));
+    let buffer = Arc::new(Mutex::new(Vec::with_capacity(N)));
+
+    let sem_cloned = Arc::clone(&sem);
+    let buf_cloned = Arc::clone(&buffer);
+    let t1 = thread::spawn(move || {
+        loop {
+            // heavy computation
+            let random_result: f64 = rand::thread_rng().gen();
+            thread::sleep(Duration::from_millis((500 as f64 * random_result) as u64));
+
+            buf_cloned.lock().expect("").push(random_result);
+            sem_cloned.release()
+        }
+    });
+
+    let sem_cloned = Arc::clone(&sem);
+    let buf_cloned = Arc::clone(&buffer);
+    let t2 = thread::spawn(move || {
+        loop {
+            sem_cloned.acquire();
+            println!("{}", buf_cloned.lock().expect("").pop());
+        }
+    });
+
+    t1.join().unwrap();
+    t2.join().unwrap();
+}
+```
+
+### Respuesta
+
+El problema modelado es el del **productor-consumidor con buffer acotado**. Si bien la red de petri está bien, el código no contempla el caso en el que el buffer se encuentra lleno antes de que el productor pushee. Esto se puede arreglar con un segundo semáforo `sem_2` inicializado en `N`, y llamando `sem_2_cloned.acquire()` en t1 justo antes del push, y `sem_2_cloned.release()` en t2 justo después del pop. Aunque la existencia de dos semáforos podría parecer que permite que haya un deadlock si cada thread se queda bloqueado en uno, en la práctica esto no puede pasar por como está estructurado el código, como nos muestra la red de Petri. (❓, esto es tal cual lo que puse en el parcial y me dieron 1/2 puntos, ni idea de por qué. Capaz se me escapó algún error en el código aparte del push o mi "solución" está mal?)
