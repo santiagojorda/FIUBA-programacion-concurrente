@@ -1,0 +1,1 @@
+{"name":"Mcdonalds","next_order_id":2,"orders_queue":[{"customer_position":[10,8],"order_id":1,"order_status":"PreparingOrder","total_price":95.7811631670632}],"position":[8,8],"restaurant_id":0,"restaurant_socket":"127.0.0.1:53519"}

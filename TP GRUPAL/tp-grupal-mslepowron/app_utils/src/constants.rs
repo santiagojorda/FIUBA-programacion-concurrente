@@ -1,0 +1,10 @@
+pub const LEAD_SERVER_ADDRESS: &str = "127.0.0.1:12345";
+pub const GATEWAY_ADDRESS: &str = "127.0.0.1:40001";
+
+pub const MAX_RESTAURANT_DISTANCE: u64 = 10;
+pub const MAX_DELIVERY_DISTANCE: u64 = 10;
+
+pub const MAX_SERVERS: u64 = 5;
+pub const SERVER_TCP_PORT_RANGE: u64 = 10000;
+pub const SERVER_UDP_PORT_RANGE: u64 = 5000;
+pub const MAX_RESPONSE_TIME: u64 = 5;

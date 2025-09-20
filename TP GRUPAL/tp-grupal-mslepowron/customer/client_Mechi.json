@@ -1,0 +1,1 @@
+{"assigned_delivery_socket":null,"available_restaurants":[{"id":1,"name":"Mcdonalds","position":[8,8],"socket":"127.0.0.1:53519"}],"id":4,"id_order":1,"name":"Mechi","payment_authorized":true,"payment_confirmed":true,"payment_type":"creditcard","selected_restaurant_socket":"127.0.0.1:53519"}

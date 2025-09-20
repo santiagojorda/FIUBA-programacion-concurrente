@@ -1,0 +1,34 @@
+[package]
+name = "pedidos_rust"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "repartidores"
+path = "src/bin/repartidores.rs"
+
+[[bin]]
+name = "pagos"
+path = "src/bin/pagos.rs"
+
+[[bin]]
+name = "comensales"
+path = "src/bin/comensales.rs"
+
+[[bin]]
+name = "restaurantes"
+path = "src/bin/restaurantes.rs"
+
+[dependencies]
+colored = "3.0.0"
+rand = "0.8"
+actix = "0.13.5"
+actix-rt = "2.10.0"
+ntest = "0.8"
+futures-channel = "0.3"
+tokio = { version = "1", features = ["full"] }
+actix_async_handler = "0.1.0"
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+toml = "0.8"
+chrono = { version = "0.4", features = ["serde"] }

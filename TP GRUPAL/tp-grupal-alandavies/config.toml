@@ -1,0 +1,17 @@
+[comensales]
+ip = "127.0.0.0"
+
+[repartidores]
+ip = "127.0.0.1"
+rango_puertos = [2011, 2020]
+
+[restaurantes]
+ip = "127.0.0.2"
+rango_puertos = [2000, 2010]
+
+[pagos]
+ip = "127.0.0.3"
+puerto = 8080
+
+[logger]
+directorio = "logs_demo/"

@@ -1,0 +1,2 @@
+{"available_restaurants":[{"id":1,"name":"mc","position":[10,10],"socket":"127.0.0.1:64101"}],"id":4,"id_order":1,"name":"Agus","payment_authorized":true,"payment_confirmed":true,"payment_type":"creditcard","selected_restaurant_socket":null}
+
